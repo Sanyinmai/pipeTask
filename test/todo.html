@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待办事项</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .stats {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .input-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #taskInput:focus {
+            border-color: #667eea;
+        }
+
+        #prioritySelect {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            min-width: 100px;
+        }
+
+        #prioritySelect:focus {
+            border-color: #667eea;
+        }
+
+        #addBtn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #addBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #addBtn:active {
+            transform: translateY(0);
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .priority-high {
+            background-color: #ff4757;
+        }
+
+        .priority-medium {
+            background-color: #ffa502;
+        }
+
+        .priority-low {
+            background-color: #2ed573;
+        }
+
+        .priority-badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        #taskList {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+        }
+
+        .task-item:hover {
+            background: #f9f9f9;
+        }
+
+        .task-item.completed {
+            background: #f5f5f5;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .priority-indicator {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-right: 5px;
+        }
+
+        .priority-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 15px;
+            word-break: break-all;
+        }
+
+        .delete-btn {
+            padding: 8px 12px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .task-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .filter-container {
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .priority-high {
+            background-color: #ff4757;
+        }
+
+        .priority-medium {
+            background-color: #ffa502;
+        }
+
+        .priority-low {
+            background-color: #2ed573;
+        }
+
+        .priority-badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        #taskList {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+        }
+
+        .task-item:hover {
+            background: #f9f9f9;
+        }
+
+        .task-item.completed {
+            background: #f5f5f5;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .priority-indicator {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-right: 5px;
+        }
+
+        .priority-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 15px;
+            word-break: break-all;
+        }
+
+        .delete-btn {
+            padding: 8px 12px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .task-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 待办事项</h1>
+            <div class="stats" id="stats"></div>
+        </header>
+
+        <div class="input-container">
+            <div class="input-row">
+                <input type="text" id="taskInput" placeholder="添加新的待办事项..." onkeypress="if(event.key === 'Enter') addTask()">
+                <select id="prioritySelect">
+                    <option value="high">高优先级</option>
+                    <option value="medium" selected>中优先级</option>
+                    <option value="low">低优先级</option>
+                </select>
+                <button id="addBtn" onclick="addTask()">添加</button>
+            </div>
+        </div>
+
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="setFilter('all')">全部</button>
+            <button class="filter-btn" onclick="setFilter('active')">未完成</button>
+            <button class="filter-btn" onclick="setFilter('completed')">已完成</button>
+            <div style="width: 1px; height: 20px; background: #e0e0e0; margin: 0 5px;"></div>
+            <button class="filter-btn priority-high" onclick="setPriorityFilter('high')">高</button>
+            <button class="filter-btn priority-medium" onclick="setPriorityFilter('medium')">中</button>
+            <button class="filter-btn priority-low" onclick="setPriorityFilter('low')">低</button>
+        </div>
+
+        <ul id="taskList"></ul>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let currentFilter = 'all';
+        let currentPriorityFilter = null;
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            const filteredTasks = tasks.filter(task => {
+                if (currentFilter === 'active') return !task.completed;
+                if (currentFilter === 'completed') return task.completed;
+                return true;
+            });
+
+            if (currentPriorityFilter) {
+                filteredTasks.filter(task => task.priority === currentPriorityFilter);
+            }
+
+            taskList.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <p>🎉 没有任务了，去休息一下吧！</p>
+                    </div>
+                `;
+            } else {
+                filteredTasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = `task-item ${task.completed ? 'completed' : ''}`;
+
+                    const priorityColors = {
+                        high: '#ff4757',
+                        medium: '#ffa502',
+                        low: '#2ed573'
+                    };
+
+                    const priorityLabel = {
+                        high: '高',
+                        medium: '中',
+                        low: '低'
+                    };
+
+                    li.innerHTML = `
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                        <div class="priority-indicator">
+                            <div class="priority-dot" style="background-color: ${priorityColors[task.priority]}"></div>
+                        </div>
+                        <span class="task-text">${escapeHtml(task.text)}</span>
+                        <span style="font-size: 11px; color: #999; margin-left: 5px;">${priorityLabel[task.priority]}</span>
+                        <button class="delete-btn" onclick="deleteTask(${task.id})">删除</button>
+                    `;
+                    taskList.appendChild(li);
+                });
+            }
+
+            updateStats();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const priority = document.getElementById('prioritySelect').value;
+            const text = input.value.trim();
+
+            if (text) {
+                const task = {
+                    id: Date.now(),
+                    text: text,
+                    completed: false,
+                    priority: priority,
+                    createdAt: new Date().toISOString()
+                };
+                tasks.unshift(task);
+                saveTasks();
+                renderTasks();
+                input.value = '';
+            }
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            currentPriorityFilter = null;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTasks();
+        }
+
+        function setPriorityFilter(priority) {
+            currentFilter = 'all';
+            currentPriorityFilter = priority;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTasks();
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const highPriority = tasks.filter(t => t.priority === 'high' && !t.completed).length;
+            const mediumPriority = tasks.filter(t => t.priority === 'medium' && !t.completed).length;
+            const lowPriority = tasks.filter(t => t.priority === 'low' && !t.completed).length;
+            document.getElementById('stats').textContent = `共 ${total} 项任务，已完成 ${completed} 项 | 待办: 高${highPriority} / 中${mediumPriority} / 低${lowPriority}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 初始化
+        renderTasks();
+    </script>
+</body>
+</html>
